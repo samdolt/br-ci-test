@@ -1,0 +1,26 @@
+language: ruby
+cache:
+  directories:
+    - /home/travis/.buildroot-ccache/
+sudo: required
+dist: trusty
+install:
+  - sudo dpkg --add-architecture i386
+  - sudo apt-get update
+  - "sudo apt-get install -y bc libc6:i386 libstdc++6:i386 zlib1g:i386 gcc-multilib"
+env:
+  matrix:
+   - DEFCONFIG_NAME=beaglebone_defconfig
+
+script:
+- echo 'Clone Buildroot repository'
+- echo 'Configure Buildroot'
+- make ${DEFCONFIG_NAME}
+- while true ; do echo "Still building" ; sleep 60 ; done &
+- stupidpid=$!
+- echo 'Build buildroot'
+- make > >(tee build.log |grep '>>>') 2>&1
+- kill ${stupidpid}
+- echo 'Display end of log'
+- tail -1000 build.log
+- echo 'Upload log file'
